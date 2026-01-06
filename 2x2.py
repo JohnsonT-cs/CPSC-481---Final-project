@@ -32,18 +32,18 @@ Goal_State = (
 
 # Original: (0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15, 16,17,18,19, 20,21,22,23)
 Moves = {
-    "FR": (2,0,3,1, 4,5,6,7, 8,9,17,19, 20,22,14,15, 16,12,18,13, 10,21,11,23), #
-    "LD": (8,1,10,3, 12,5,14,7, 4,9,6,11, 0,13,2,15, 18,16,19,17, 20,21,22,23), #
-    "RU": (0,13,2,15, 4,9,6,11, 8,1,10,3, 12,5,14,7, 16,17,18,19, 22,20,23,21), #
-    "UL": (20,21,2,3, 16,17,6,7, 10,8,11,9, 12,13,14,15, 0,1,18,19, 4,5,22,23), #
-    "DR": (0,1,18,19, 4,5,22,23, 8,9,10,11, 14,12,15,13, 16,17,6,7, 20,21,2,3), #
+    "FR": (2,0,3,1, 4,5,6,7, 8,9,17,19, 20,22,14,15, 16,12,18,13, 10,21,11,23),
+    "LD": (8,1,10,3, 12,5,14,7, 4,9,6,11, 0,13,2,15, 18,16,19,17, 20,21,22,23),
+    "RU": (0,13,2,15, 4,9,6,11, 8,1,10,3, 12,5,14,7, 16,17,18,19, 22,20,23,21),
+    "UL": (20,21,2,3, 16,17,6,7, 10,8,11,9, 12,13,14,15, 0,1,18,19, 4,5,22,23),
+    "DR": (0,1,18,19, 4,5,22,23, 8,9,10,11, 14,12,15,13, 16,17,6,7, 20,21,2,3),
 
     # Inverse
-    "FL": (1,3,0,2, 4,5,6,7, 8,9,20,22, 17,19,14,15, 16,10,18,11, 12,21,13,23), #
-    "LU": (12,1,14,3, 8,5,10,7, 0,9,2,11, 4,13,6,15, 17,19,16,18, 20,21,22,23), #
-    "RD": (0,9,2,11, 4,13,6,15, 8,5,10,7, 12,1,14,3, 16,17,18,19, 21,23,20,22), #
-    "UR": (16,17,2,3, 20,21,6,7, 9,11,8,10, 12,13,14,15, 4,5,18,19, 0,1,22,23), #
-    "DL": (0,1,22,23, 4,5,18,19, 8,9,10,11, 13,15,12,14, 16,17,2,3, 20,21,6,7) #
+    "FL": (1,3,0,2, 4,5,6,7, 8,9,20,22, 17,19,14,15, 16,10,18,11, 12,21,13,23),
+    "LU": (12,1,14,3, 8,5,10,7, 0,9,2,11, 4,13,6,15, 17,19,16,18, 20,21,22,23),
+    "RD": (0,9,2,11, 4,13,6,15, 8,5,10,7, 12,1,14,3, 16,17,18,19, 21,23,20,22),
+    "UR": (16,17,2,3, 20,21,6,7, 9,11,8,10, 12,13,14,15, 4,5,18,19, 0,1,22,23),
+    "DL": (0,1,22,23, 4,5,18,19, 8,9,10,11, 13,15,12,14, 16,17,2,3, 20,21,6,7)
 }
 
 # Functions
@@ -115,19 +115,28 @@ def display_cube(state):
     print("Down:  ", state[12:16])
     print("Left:  ", state[16:20])
     print("Right: ", state[20:24])
-    print("-" * 30)
+
+def show_solution_states(start_state, solution_moves):
+    state = start_state
+
+    for i, move in enumerate(solution_moves, 1):
+        state = apply_move(state, move)
+        print("-" * 30)
+        print(f"Move {i}: {move}")
+        display_cube(state)
 
 # Main
 if __name__ == "__main__":
     # Random scramble
     scrambled_state, scramble_moves = random_scramble(n_moves = 7)
     print("Scramble moves applied:", scramble_moves)
-    print("Scrambled Cube:")
     print("-" * 30)
+    print("Scrambled Cube:")
     display_cube(scrambled_state)
+    print("-" * 30)
 
     # Solve with A*
-    print("Solving the cube using A*...")
+    print("\nSolving the cube using A*...")
     solution, runtime = Astar(scrambled_state)
 
     if solution:
@@ -135,5 +144,11 @@ if __name__ == "__main__":
         print("Moves to solve:", solution)
         print("Number of moves:", len(solution))
         print("Runtime: {:.4f} seconds".format(runtime))
+
+        # Show step-by-step states
+        print("\nShowing solution states step-by-step:")
+        show_solution_states(scrambled_state, solution)
+        print("-" * 30)
+        print()
     else:
-        print("No solution found.")
+        print("No solution found.\n")
