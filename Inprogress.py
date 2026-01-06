@@ -3,7 +3,7 @@ import random
 import time
 
 # Cube Definition
-# 2x2x2 cube: 6 faces, 24 stickers
+# 3x3x3 cube: 6 faces, 54 stickers
 # W: White, Y: Yellow, G: Green, B: Blue, O: Orange, R: Red
 
 # ----- Moves Definition -----
@@ -20,14 +20,14 @@ import time
 # [UR] Upper layer Right
 # [DL] Down layer Left
 
-# Length = 24
+# Length = 54
 Goal_State = (
-    'R','R','R','R',  # Front
-    'O','O','O','O',  # Back
-    'Y','Y','Y','Y',  # Up
-    'W','W','W','W',  # Down
-    'B','B','B','B',  # Left
-    'G','G','G','G'   # Right
+    'R','R','R','R','R','R','R','R','R'  # Front
+    'O','O','O','O','O','O','O','O','O'  # Back
+    'Y','Y','Y','Y','Y','Y','Y','Y','Y'  # Up
+    'W','W','W','W','W','W','W','W','W'  # Down
+    'B','B','B','B','B','B','B','B','B'  # Left
+    'G','G','G','G','G','G','G','G','G'  # Right
 )
 
 # Original: (0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15, 16,17,18,19, 20,21,22,23)
@@ -128,7 +128,7 @@ def show_solution_states(start_state, solution_moves):
 # Main
 if __name__ == "__main__":
     # Random scramble
-    scrambled_state, scramble_moves = random_scramble(n_moves = 5)
+    scrambled_state, scramble_moves = random_scramble(n_moves = 7)
     print("Scramble moves applied:", scramble_moves)
     print("-" * 30)
     print("Scrambled Cube:")
