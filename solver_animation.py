@@ -1,6 +1,8 @@
 import numpy as np
 from vispy import scene, app
+from vispy.app import Timer
 from vispy.scene.visuals import Box
+from vispy.visuals.transforms import MatrixTransform
 
 # App & Canvas
 app.use_app('pyqt6')
@@ -25,6 +27,9 @@ CUBELET_SIZE = 0.95
 GAP = 0.03
 STEP = CUBELET_SIZE + GAP
 
+ANIMATION_STEPS = 30
+ANGLE_STEP = 90 / ANIMATION_STEPS
+
 COLORS = {
     "R": (1, 0, 0, 1),
     "O": (1, 0.5, 0, 1),
@@ -32,28 +37,21 @@ COLORS = {
     "W": (1, 1, 1, 1),
     "B": (0, 0, 1, 1),
     "G": (0, 1, 0, 1),
-    "K": (0.2, 0.2, 0.2, 1)  # internal faces (transparent)
+    "K": (0.2, 0.2, 0.2, 1)
 }
 
+# Helpers
 def expand_face_colors(face_colors):
-    """
-    Each face = 2 triangles, turn triangles into squares
-    """
     expanded = []
     for c in face_colors:
         expanded.append(c)
         expanded.append(c)
     return expanded
 
+# Cubelet Creation
 def create_cubelet(x, y, z):
-    """
-    Create one cubelet at position (x, y, z)
-    """
-
-    # Default all faces to internal color
     faces = [COLORS["K"]] * 6
 
-    # Assign sticker colors only on outer faces
     if z == 0: faces[0] = COLORS["G"]
     if z == 1: faces[1] = COLORS["B"]
     if y == 0: faces[2] = COLORS["Y"]
@@ -69,27 +67,119 @@ def create_cubelet(x, y, z):
         edge_color='black'
     )
 
-    # Position cubelet
-    cube.transform = scene.transforms.STTransform(
-        translate=(x * STEP, y * STEP, z * STEP)
-    )
-
+    transform = MatrixTransform()
+    transform.translate((x * STEP, y * STEP, z * STEP))
+    cube.transform = transform
     view.add(cube)
-    return cube
 
-# Build the 2x2x2 Cube
+    return {
+        "visual": cube,
+        "pos": np.array([x, y, z], dtype=int),
+        "transform": transform
+    }
+
+# Build Cube
 cubelets = []
-
 for x in range(2):
     for y in range(2):
         for z in range(2):
             cubelets.append(create_cubelet(x, y, z))
 
-# Center the Entire Cube
+# Center cube
 offset = STEP / 2
-for cube in cubelets:
-    cube.transform.translate -= (offset, offset, offset, 0)
+for c in cubelets:
+    c["transform"].translate((-offset, -offset, -offset))
 
+# Animation State
+rotating = False
+current_step = 0
+rotation_cubelets = []
+rotation_axis = None
+clockwise = True
+timer = None
+
+# Rotation Logic
+def rotate_layer(axis, layer, cw=True):
+    global rotating, current_step
+    global rotation_cubelets, rotation_axis, clockwise, timer
+
+    if rotating:
+        return
+
+    rotating = True
+    current_step = 0
+    rotation_axis = axis
+    clockwise = cw
+
+    rotation_cubelets = [
+        c for c in cubelets if c["pos"][axis] == layer
+    ]
+
+    pivot = np.array([0.5, 0.5, 0.5]) * STEP - offset
+
+    direction = -1 if cw else 1
+    angle = direction * ANGLE_STEP
+
+    def update(event):
+        global current_step, rotating
+
+        for c in rotation_cubelets:
+            t = c["transform"]
+            t.translate(-pivot)
+
+            if axis == 0:
+                t.rotate(angle, (1, 0, 0))
+            elif axis == 1:
+                t.rotate(angle, (0, 1, 0))
+            elif axis == 2:
+                t.rotate(angle, (0, 0, 1))
+
+            t.translate(pivot)
+
+        current_step += 1
+
+        if current_step >= ANIMATION_STEPS:
+            timer.stop()
+            finalize_positions(axis, layer, cw)
+            rotating = False
+
+    timer = Timer(0.016, connect=update)
+    timer.start()
+
+# Snap Logical Positions
+def finalize_positions(axis, layer, cw):
+    for c in cubelets:
+        if c["pos"][axis] != layer:
+            continue
+
+        x, y, z = c["pos"]
+
+        if axis == 2:
+            c["pos"] = np.array([
+                y if cw else 1 - y,
+                1 - x if cw else x,
+                z
+            ])
+
+        elif axis == 0:
+            c["pos"] = np.array([
+                x,
+                z if cw else 1 - z,
+                1 - y if cw else y
+            ])
+
+        elif axis == 1:
+            c["pos"] = np.array([
+                1 - z if cw else z,
+                y,
+                x if cw else 1 - x
+            ])
+
+# Manual rotations
+@canvas.events.key_press.connect
+def on_key(event):
+    if event.key == 'F':
+        rotate_layer(axis=2, layer=1, cw=True)
 
 if __name__ == "__main__":
     canvas.app.run()
