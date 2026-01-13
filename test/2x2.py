@@ -95,71 +95,6 @@ def Astar(start):
                 )
     return None, None
 
-from collections import deque
-
-def BFS(start):
-    start_time = time.time()
-    queue = deque()
-    queue.append((start, [], None))
-    visited = set([start])
-
-    while queue:
-        state, path, last_move = queue.popleft()
-
-        if state == Goal_State:
-            return path, time.time() - start_time
-
-        for move in Moves:
-            if last_move and move == inverse_map.get(last_move):
-                continue
-
-            next_state = apply_move(state, move)
-
-            if next_state not in visited:
-                visited.add(next_state)
-                queue.append((next_state, path + [move], move))
-
-    return None, None
-
-def depth_limited_dfs(state, path, depth, last_move, visited):
-    if state == Goal_State:
-        return path
-
-    if depth == 0:
-        return None
-
-    for move in Moves:
-        if last_move and move == inverse_map.get(last_move):
-            continue
-
-        next_state = apply_move(state, move)
-
-        if next_state not in visited:
-            visited.add(next_state)
-            result = depth_limited_dfs(
-                next_state,
-                path + [move],
-                depth - 1,
-                move,
-                visited
-            )
-            if result:
-                return result
-            visited.remove(next_state)
-
-    return None
-
-def IDS(start, max_depth = 10):
-    start_time = time.time()
-
-    for depth in range(max_depth + 1):
-        visited = set([start])
-        result = depth_limited_dfs(start, [], depth, None, visited)
-        if result:
-            return result, time.time() - start_time
-
-    return None, None
-
 def random_scramble(n_moves):
     # Scramble the cube with n random moves
     state = Goal_State
@@ -193,7 +128,7 @@ def show_solution_states(start_state, solution_moves):
 # Main
 if __name__ == "__main__":
     # Random scramble
-    scrambled_state, scramble_moves = random_scramble(n_moves = 10)
+    scrambled_state, scramble_moves = random_scramble(n_moves = 5)
     print("Scramble moves applied:", scramble_moves)
     print("-" * 30)
     print("Scrambled Cube:")
@@ -202,31 +137,18 @@ if __name__ == "__main__":
 
     # Solve with A*
     print("\nSolving the cube using A*...")
-    astar_solution, astar_time = Astar(scrambled_state)
+    solution, runtime = Astar(scrambled_state)
 
-    # Solve with BFS
-    print("Solving the cube using BFS...")
-    bfs_solution, bfs_time = BFS(scrambled_state)
+    if solution:
+        print("Solution found!")
+        print("Moves to solve:", solution)
+        print("Number of moves:", len(solution))
+        print("Runtime: {:.4f} seconds".format(runtime))
 
-    # Solve with IDS
-    print("Solving the cube using IDS...")
-    ids_solution, ids_time = IDS(scrambled_state, max_depth=10)
-
-    print("---------- Results ----------")
-
-    if astar_solution:
-        print(f"A*:  Moves = {len(astar_solution)}, Time = {astar_time:.4f}s")
+        # Show step-by-step states
+        print("\nShowing solution states step-by-step:")
+        show_solution_states(scrambled_state, solution)
+        print("-" * 30)
+        print()
     else:
-        print("A*:  No solution")
-
-    if bfs_solution:
-        print(f"BFS: Moves = {len(bfs_solution)}, Time = {bfs_time:.4f}s")
-    else:
-        print("BFS: No solution")
-
-    if ids_solution:
-        print(f"IDS: Moves = {len(ids_solution)}, Time = {ids_time:.4f}s")
-    else:
-        print("IDS: No solution")
-
-    print("-----------------------------\n")
+        print("No solution found.\n")
