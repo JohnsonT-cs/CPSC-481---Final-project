@@ -3,9 +3,21 @@ from vispy import scene, app
 from vispy.app import Timer
 from vispy.scene.visuals import Box
 from vispy.visuals.transforms import MatrixTransform
+import tkinter as tk
+import sys
+
+import AlgorithmComparison as AC
 
 # App & Canvas
 app.use_app('pyqt6')
+
+scrambled = []
+solved = []
+if len(sys.argv) > 1:
+    scrambled = sys.argv[1].split(',')
+    solved = sys.argv[2].split(',')
+test = ['R', 'U', 'G', 'H', 'I', 'U', 'R', 'U']
+moves = []
 
 canvas = scene.SceneCanvas(
     keys='interactive',
@@ -98,6 +110,24 @@ rotation_axis = None
 clockwise = True
 timer = None
 
+def start_rotation_sequence(moves_list):
+    global moves
+    moves = moves_list.copy()
+    if not moves == []:
+        next_move = moves.pop(0)
+        if next_move == 'R':
+            rotate_layer(axis=0, layer=1, cw=True)
+        elif next_move == 'U':
+            rotate_layer(axis=1, layer=1, cw=True)
+        elif next_move == 'F':
+            rotate_layer(axis=2, layer=1, cw=True)
+        elif next_move == 'L':
+            rotate_layer(axis=0, layer=0, cw=True)
+        elif next_move == 'D':
+            rotate_layer(axis=1, layer=0, cw=True)
+        elif next_move == 'B':
+            rotate_layer(axis=2, layer=0, cw=True)
+
 # Rotation Logic
 def rotate_layer(axis, layer, cw=True):
     global rotating, current_step
@@ -143,6 +173,31 @@ def rotate_layer(axis, layer, cw=True):
             timer.stop()
             finalize_positions(axis, layer, cw)
             rotating = False
+            if not moves == []:
+                next_move = moves.pop(0)
+                if next_move == 'R':
+                    rotate_layer(axis=0, layer=1, cw=True)
+                elif next_move == 'U':
+                    rotate_layer(axis=1, layer=1, cw=True)
+                elif next_move == 'F':
+                    rotate_layer(axis=2, layer=1, cw=True)
+                elif next_move == 'L':
+                    rotate_layer(axis=0, layer=0, cw=True)
+                elif next_move == 'D':
+                    rotate_layer(axis=1, layer=0, cw=True)
+                elif next_move == 'B':
+                    rotate_layer(axis=2, layer=0, cw=True)
+                elif next_move == 'G': # LD
+                    rotate_layer(axis=0, layer=0, cw=False)
+                elif next_move == 'H': # FR
+                    rotate_layer(axis=1, layer=0, cw=False)
+                elif next_move == 'J': # DR
+                    rotate_layer(axis=2, layer=0, cw=False)
+                elif next_move == 'K': # RD
+                    rotate_layer(axis=0, layer=1, cw=False)
+                elif next_move == 'I': # UR
+                    rotate_layer(axis=2, layer=1, cw=False)
+            
 
     timer = Timer(0.016, connect=update)
     timer.start()
@@ -182,18 +237,62 @@ def finalize_positions(axis, layer, cw):
 # Manual rotations
 @canvas.events.key_press.connect
 def on_key(event):
-    if event.key == 'R':
+    if event.key == 'R': # RU
         rotate_layer(axis=0, layer=1, cw=True)
     if event.key == 'U':
         rotate_layer(axis=1, layer=1, cw=True)
-    if event.key == 'F':
+    if event.key == 'F': # UL
         rotate_layer(axis=2, layer=1, cw=True)
-    if event.key == 'L':
+    if event.key == 'L': # LU
         rotate_layer(axis=0, layer=0, cw=True)
-    if event.key == 'D':
+    if event.key == 'D': # FL
         rotate_layer(axis=1, layer=0, cw=True)
-    if event.key == 'B':
+    if event.key == 'B': # DL
         rotate_layer(axis=2, layer=0, cw=True)
 
+
+    if event.key == 'G': # LD
+        rotate_layer(axis=0, layer=0, cw=False)
+    if event.key == 'H': # FR
+        rotate_layer(axis=1, layer=0, cw=False)
+    if event.key == 'J': # DR
+        rotate_layer(axis=2, layer=0, cw=False)
+    if event.key == 'K': # RD
+        rotate_layer(axis=0, layer=1, cw=False)
+    if event.key == 'I': # UR
+        rotate_layer(axis=2, layer=1, cw=False)
+    
+    if event.key == "T":
+        global moves
+        moves = test.copy()
+        next_move = moves.pop(0)
+        if next_move == 'R':
+            rotate_layer(axis=0, layer=1, cw=True)
+        elif next_move == 'U':
+            rotate_layer(axis=1, layer=1, cw=True)
+        elif next_move == 'F':
+            rotate_layer(axis=2, layer=1, cw=True)
+        elif next_move == 'L':
+            rotate_layer(axis=0, layer=0, cw=True)
+        elif next_move == 'D':
+            rotate_layer(axis=1, layer=0, cw=True)
+        elif next_move == 'B':
+            rotate_layer(axis=2, layer=0, cw=True)
+        elif event.key == 'G': # LD
+            rotate_layer(axis=0, layer=0, cw=False)
+        elif event.key == 'H': # FR
+            rotate_layer(axis=1, layer=0, cw=False)
+        elif event.key == 'J': # DR
+            rotate_layer(axis=2, layer=0, cw=False)
+        elif event.key == 'K': # RD
+            rotate_layer(axis=0, layer=1, cw=False)
+        elif event.key == 'I': # UR
+            rotate_layer(axis=2, layer=1, cw=False)
+
+        
+        
+
 if __name__ == "__main__":
+    if scrambled:
+        start_rotation_sequence(scrambled)
     canvas.app.run()

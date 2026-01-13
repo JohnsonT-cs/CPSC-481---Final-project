@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import subprocess
+import sys
 
 import AlgorithmComparison as AC
 
@@ -82,6 +84,8 @@ class CubeGUI(tk.Tk):
         self.reset_btn = ttk.Button(scramble_box, text="Reset to Solved", command=self.reset_cube)
         self.reset_btn.grid(row=0, column=3, sticky="w", padx=(8, 0))
 
+        
+
         # Algorithm controls
         algo_box = ttk.LabelFrame(right, text="Solve", padding=10)
         algo_box.pack(fill="x", pady=(12, 0))
@@ -94,6 +98,9 @@ class CubeGUI(tk.Tk):
 
         self.solve_btn = ttk.Button(algo_box, text="Run", command=self.solve)
         self.solve_btn.grid(row=0, column=2, sticky="w", padx=(12, 0))
+        
+        self.solver_btn = ttk.Button(algo_box, text="Run 3D Solver", command=self.open_3d_solver)
+        self.solver_btn.grid(row=0, column=5, sticky="w", padx=(12, 0))
 
         # Animation controls
         anim_box = ttk.LabelFrame(right, text="Animation", padding=10)
@@ -112,6 +119,7 @@ class CubeGUI(tk.Tk):
 
         self.stop_btn = ttk.Button(anim_box, text="Stop", command=self.stop_animation)
         self.stop_btn.grid(row=0, column=4, sticky="w", padx=(8, 0))
+
 
         # Output: moves + metrics
         out_box = ttk.LabelFrame(right, text="Output", padding=10)
@@ -202,6 +210,9 @@ class CubeGUI(tk.Tk):
             self.moves_text.insert("end", " ".join(moves))
         else:
             self.moves_text.insert("end", "(no moves)")
+
+    def open_3d_solver(self):
+        subprocess.Popen([sys.executable, "solver_animation.py"])
 
     def reset_cube(self):
         self.stop_animation()
