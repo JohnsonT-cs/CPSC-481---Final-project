@@ -134,6 +134,7 @@ def rotate_layer(axis, layer, cw=True):
             elif axis == 2:
                 t.rotate(angle, (0, 0, 1))
 
+
             t.translate(pivot)
 
         current_step += 1
@@ -154,14 +155,9 @@ def finalize_positions(axis, layer, cw):
 
         x, y, z = c["pos"]
 
-        if axis == 2:
-            c["pos"] = np.array([
-                y if cw else 1 - y,
-                1 - x if cw else x,
-                z
-            ])
+        
 
-        elif axis == 0:
+        if axis == 0:
             c["pos"] = np.array([
                 x,
                 z if cw else 1 - z,
@@ -174,12 +170,30 @@ def finalize_positions(axis, layer, cw):
                 y,
                 x if cw else 1 - x
             ])
+        
+        if axis == 2:
+            c["pos"] = np.array([
+                y if cw else 1 - y,
+                1 - x if cw else x,
+                z
+            ])
+        
 
 # Manual rotations
 @canvas.events.key_press.connect
 def on_key(event):
+    if event.key == 'R':
+        rotate_layer(axis=0, layer=1, cw=True)
+    if event.key == 'U':
+        rotate_layer(axis=1, layer=1, cw=True)
     if event.key == 'F':
         rotate_layer(axis=2, layer=1, cw=True)
+    if event.key == 'L':
+        rotate_layer(axis=0, layer=0, cw=True)
+    if event.key == 'D':
+        rotate_layer(axis=1, layer=0, cw=True)
+    if event.key == 'B':
+        rotate_layer(axis=2, layer=0, cw=True)
 
 if __name__ == "__main__":
     canvas.app.run()
