@@ -114,11 +114,14 @@ class CubeGUI(tk.Tk):
         self.play_btn = ttk.Button(anim_box, text="Play solution", command=self.play_solution)
         self.play_btn.grid(row=0, column=2, sticky="w", padx=(12, 0))
 
+        self.play_btn = ttk.Button(anim_box, text="Play 3D solution", command=self.solve_3d_solver)
+        self.play_btn.grid(row=0, column=3, sticky="w", padx=(12, 0))
+
         self.step_btn = ttk.Button(anim_box, text="Step", command=self.step_once)
-        self.step_btn.grid(row=0, column=3, sticky="w", padx=(8, 0))
+        self.step_btn.grid(row=0, column=4, sticky="w", padx=(8, 0))
 
         self.stop_btn = ttk.Button(anim_box, text="Stop", command=self.stop_animation)
-        self.stop_btn.grid(row=0, column=4, sticky="w", padx=(8, 0))
+        self.stop_btn.grid(row=0, column=5, sticky="w", padx=(8, 0))
 
 
         # Output: moves + metrics
@@ -212,7 +215,20 @@ class CubeGUI(tk.Tk):
             self.moves_text.insert("end", "(no moves)")
 
     def open_3d_solver(self):
-        subprocess.Popen([sys.executable, "solver_animation.py"])
+        if not self.scramble_moves:
+            messagebox.showinfo("No scramble", "Scramble the cube first.")
+            return
+        scramble_arg = ",".join(self.scramble_moves)
+        subprocess.Popen([sys.executable, "solver_animation.py", scramble_arg])
+
+    def solve_3d_solver(self):
+        if not self.scramble_moves:
+            messagebox.showinfo("No scramble", "Scramble the cube first.")
+            return
+        all_moves = self.scramble_moves.copy()
+        all_moves += self.solution_moves
+        sol_arg = ",".join(all_moves)
+        subprocess.Popen([sys.executable, "solver_animation.py", sol_arg])
 
     def reset_cube(self):
         self.stop_animation()

@@ -11,11 +11,33 @@ import AlgorithmComparison as AC
 # App & Canvas
 app.use_app('pyqt6')
 
+#cube_state = AC.Goal_State
+
+
+MOVE_MAP = {
+    "RU": ("R", True),
+    "RD": ("R", False),
+
+    "UL": ("U", True),
+    "UR": ("U", False),
+
+    "FR": ("F", True),
+    "FL": ("F", False),
+
+    "LU": ("L", True),
+    "LD": ("L", False),
+
+    "DR": ("D", True),
+    "DL": ("D", False),
+
+    "BR": ("B", True),
+    "BL": ("B", False)
+}
+
 scrambled = []
-solved = []
 if len(sys.argv) > 1:
-    scrambled = sys.argv[1].split(',')
-    solved = sys.argv[2].split(',')
+    raw_scramble = sys.argv[1].split(',')
+    scrambled = [MOVE_MAP[m] for m in raw_scramble]
 test = ['R', 'U', 'G', 'H', 'I', 'U', 'R', 'U']
 moves = []
 
@@ -47,8 +69,8 @@ COLORS = {
     "O": (1, 0.5, 0, 1),
     "Y": (1, 1, 0, 1),
     "W": (1, 1, 1, 1),
-    "B": (0, 0, 1, 1),
-    "G": (0, 1, 0, 1),
+    "G": (0, 0, 1, 1),
+    "B": (0, 1, 0, 1),
     "K": (0.2, 0.2, 0.2, 1)
 }
 
@@ -64,12 +86,12 @@ def expand_face_colors(face_colors):
 def create_cubelet(x, y, z):
     faces = [COLORS["K"]] * 6
 
-    if z == 0: faces[0] = COLORS["G"]
-    if z == 1: faces[1] = COLORS["B"]
+    if z == 0: faces[0] = COLORS["R"]
+    if z == 1: faces[1] = COLORS["O"]
     if y == 0: faces[2] = COLORS["Y"]
     if y == 1: faces[3] = COLORS["W"]
-    if x == 0: faces[4] = COLORS["R"]
-    if x == 1: faces[5] = COLORS["O"]
+    if x == 0: faces[4] = COLORS["G"]
+    if x == 1: faces[5] = COLORS["B"]
 
     cube = Box(
         width=CUBELET_SIZE,
@@ -113,7 +135,8 @@ timer = None
 def start_rotation_sequence(moves_list):
     global moves
     moves = moves_list.copy()
-    if not moves == []:
+    play_next_move()
+    """ if not moves == []:
         next_move = moves.pop(0)
         if next_move == 'R':
             rotate_layer(axis=0, layer=1, cw=True)
@@ -126,7 +149,26 @@ def start_rotation_sequence(moves_list):
         elif next_move == 'D':
             rotate_layer(axis=1, layer=0, cw=True)
         elif next_move == 'B':
-            rotate_layer(axis=2, layer=0, cw=True)
+            rotate_layer(axis=2, layer=0, cw=True) """
+
+def play_next_move():
+    if not moves:
+        return
+    
+    face, cw = moves.pop(0)
+
+    if face == 'R':
+        rotate_layer(axis=0, layer=1, cw=cw)
+    elif face == 'L':
+        rotate_layer(axis=0, layer=0, cw=cw)
+    elif face == 'U':
+        rotate_layer(axis=1, layer=1, cw=cw)
+    elif face == 'D':
+        rotate_layer(axis=1, layer=0, cw=cw)
+    elif face == 'F':
+        rotate_layer(axis=2, layer=1, cw=cw)
+    elif face == 'B':
+        rotate_layer(axis=2, layer=0, cw=cw)
 
 # Rotation Logic
 def rotate_layer(axis, layer, cw=True):
@@ -173,8 +215,8 @@ def rotate_layer(axis, layer, cw=True):
             timer.stop()
             finalize_positions(axis, layer, cw)
             rotating = False
-            if not moves == []:
-                next_move = moves.pop(0)
+            if not moves:
+                """next_move = moves.pop(0)
                 if next_move == 'R':
                     rotate_layer(axis=0, layer=1, cw=True)
                 elif next_move == 'U':
@@ -196,7 +238,9 @@ def rotate_layer(axis, layer, cw=True):
                 elif next_move == 'K': # RD
                     rotate_layer(axis=0, layer=1, cw=False)
                 elif next_move == 'I': # UR
-                    rotate_layer(axis=2, layer=1, cw=False)
+                    rotate_layer(axis=2, layer=1, cw=False)"""
+                return
+            play_next_move()
             
 
     timer = Timer(0.016, connect=update)
