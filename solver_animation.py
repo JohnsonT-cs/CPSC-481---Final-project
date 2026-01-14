@@ -11,8 +11,16 @@ import AlgorithmComparison as AC
 # App & Canvas
 app.use_app('pyqt6')
 
-#cube_state = AC.Goal_State
+# Solution animation (slow, visible)
+SOLVE_STEPS = 30
+SOLVE_DURATION = 0.2
 
+# Scramble animation (fast)
+SCRAMBLE_STEPS = 6
+SCRAMBLE_DURATION = 0.08
+
+
+#cube_state = AC.Goal_State
 
 MOVE_MAP = {
     "RU": ("R", True),
@@ -34,11 +42,15 @@ MOVE_MAP = {
     "BL": ("B", False)
 }
 
-scrambled = []
+scrambling = True
+scramble_moves = []
+solve_moves = []
 if len(sys.argv) > 1:
-    raw_scramble = sys.argv[1].split(',')
-    scrambled = [MOVE_MAP[m] for m in raw_scramble]
-test = ['R', 'U', 'G', 'H', 'I', 'U', 'R', 'U']
+    scramble_moves = [MOVE_MAP[m] for m in sys.argv[1].split(',')]
+
+if len(sys.argv) > 2:
+    solve_moves = [MOVE_MAP[m] for m in sys.argv[2].split(',')]
+
 moves = []
 
 canvas = scene.SceneCanvas(
@@ -61,7 +73,7 @@ CUBELET_SIZE = 0.95
 GAP = 0.03
 STEP = CUBELET_SIZE + GAP
 
-ANIMATION_STEPS = 30
+ANIMATION_STEPS = 6
 ANGLE_STEP = 90 / ANIMATION_STEPS
 
 COLORS = {
@@ -132,51 +144,57 @@ rotation_axis = None
 clockwise = True
 timer = None
 
-def start_rotation_sequence(moves_list):
-    global moves
-    moves = moves_list.copy()
+def start_rotation_sequence():
+    global moves, scrambling
+    moves = scramble_moves.copy()
+    scrambling = True
     play_next_move()
-    """ if not moves == []:
-        next_move = moves.pop(0)
-        if next_move == 'R':
-            rotate_layer(axis=0, layer=1, cw=True)
-        elif next_move == 'U':
-            rotate_layer(axis=1, layer=1, cw=True)
-        elif next_move == 'F':
-            rotate_layer(axis=2, layer=1, cw=True)
-        elif next_move == 'L':
-            rotate_layer(axis=0, layer=0, cw=True)
-        elif next_move == 'D':
-            rotate_layer(axis=1, layer=0, cw=True)
-        elif next_move == 'B':
-            rotate_layer(axis=2, layer=0, cw=True) """
 
 def play_next_move():
-    if not moves:
-        return
+    global scrambling
     
+    if not moves:
+        if scrambling:
+            # switch to solve phase
+            moves.extend(solve_moves)
+            scrambling = False
+        else:
+            return
+
     face, cw = moves.pop(0)
 
     if face == 'R':
-        rotate_layer(axis=0, layer=1, cw=cw)
+        rotate_layer(axis=0, layer=1, cw=cw, fast=scrambling)
     elif face == 'L':
-        rotate_layer(axis=0, layer=0, cw=cw)
+        rotate_layer(axis=0, layer=0, cw=cw, fast=scrambling)
     elif face == 'U':
-        rotate_layer(axis=1, layer=1, cw=cw)
+        rotate_layer(axis=1, layer=1, cw=cw, fast=scrambling)
     elif face == 'D':
-        rotate_layer(axis=1, layer=0, cw=cw)
+        rotate_layer(axis=1, layer=0, cw=cw, fast=scrambling)
     elif face == 'F':
-        rotate_layer(axis=2, layer=1, cw=cw)
+        rotate_layer(axis=2, layer=1, cw=cw, fast=scrambling)
     elif face == 'B':
-        rotate_layer(axis=2, layer=0, cw=cw)
+        rotate_layer(axis=2, layer=0, cw=cw, fast=scrambling)
 
 # Rotation Logic
-def rotate_layer(axis, layer, cw=True):
+def rotate_layer(axis, layer, cw=True, fast=False):
     global rotating, current_step
     global rotation_cubelets, rotation_axis, clockwise, timer
 
     if rotating:
         return
+
+    # Pick speed
+    if fast:
+        steps = SCRAMBLE_STEPS
+        duration = SCRAMBLE_DURATION
+    else:
+        steps = SOLVE_STEPS
+        duration = SOLVE_DURATION
+
+    angle_step = 90 / steps
+    direction = -1 if cw else 1
+    angle = direction * angle_step
 
     rotating = True
     current_step = 0
@@ -188,9 +206,6 @@ def rotate_layer(axis, layer, cw=True):
     ]
 
     pivot = np.array([0.5, 0.5, 0.5]) * STEP - offset
-
-    direction = -1 if cw else 1
-    angle = direction * ANGLE_STEP
 
     def update(event):
         global current_step, rotating
@@ -206,45 +221,19 @@ def rotate_layer(axis, layer, cw=True):
             elif axis == 2:
                 t.rotate(angle, (0, 0, 1))
 
-
             t.translate(pivot)
 
         current_step += 1
 
-        if current_step >= ANIMATION_STEPS:
+        if current_step >= steps:
             timer.stop()
             finalize_positions(axis, layer, cw)
             rotating = False
-            if not moves:
-                """next_move = moves.pop(0)
-                if next_move == 'R':
-                    rotate_layer(axis=0, layer=1, cw=True)
-                elif next_move == 'U':
-                    rotate_layer(axis=1, layer=1, cw=True)
-                elif next_move == 'F':
-                    rotate_layer(axis=2, layer=1, cw=True)
-                elif next_move == 'L':
-                    rotate_layer(axis=0, layer=0, cw=True)
-                elif next_move == 'D':
-                    rotate_layer(axis=1, layer=0, cw=True)
-                elif next_move == 'B':
-                    rotate_layer(axis=2, layer=0, cw=True)
-                elif next_move == 'G': # LD
-                    rotate_layer(axis=0, layer=0, cw=False)
-                elif next_move == 'H': # FR
-                    rotate_layer(axis=1, layer=0, cw=False)
-                elif next_move == 'J': # DR
-                    rotate_layer(axis=2, layer=0, cw=False)
-                elif next_move == 'K': # RD
-                    rotate_layer(axis=0, layer=1, cw=False)
-                elif next_move == 'I': # UR
-                    rotate_layer(axis=2, layer=1, cw=False)"""
-                return
             play_next_move()
-            
 
-    timer = Timer(0.016, connect=update)
+    timer = Timer(duration / steps, connect=update)
     timer.start()
+
 
 # Snap Logical Positions
 def finalize_positions(axis, layer, cw):
@@ -334,9 +323,8 @@ def on_key(event):
             rotate_layer(axis=2, layer=1, cw=False)
 
         
-        
 
 if __name__ == "__main__":
-    if scrambled:
-        start_rotation_sequence(scrambled)
+    if scramble_moves:
+        start_rotation_sequence()
     canvas.app.run()
