@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import subprocess
+import sys
 
 import AlgorithmComparison as AC
 
@@ -32,7 +34,7 @@ class CubeGUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("2x2 Rubik's Cube Solver (A* / BFS / IDS)")
-        self.geometry("980x560")
+        self.geometry("900x600")
         self.resizable(False, False)
 
         # State
@@ -82,6 +84,8 @@ class CubeGUI(tk.Tk):
         self.reset_btn = ttk.Button(scramble_box, text="Reset to Solved", command=self.reset_cube)
         self.reset_btn.grid(row=0, column=3, sticky="w", padx=(8, 0))
 
+        
+
         # Algorithm controls
         algo_box = ttk.LabelFrame(right, text="Solve", padding=10)
         algo_box.pack(fill="x", pady=(12, 0))
@@ -107,11 +111,16 @@ class CubeGUI(tk.Tk):
         self.play_btn = ttk.Button(anim_box, text="Play solution", command=self.play_solution)
         self.play_btn.grid(row=0, column=2, sticky="w", padx=(12, 0))
 
+        self.play_btn = ttk.Button(anim_box, text="Play 3D solution", command=self.solve_3d_solver)
+        self.play_btn.grid(row=0, column=3, sticky="w", padx=(12, 0))
+
+        """
         self.step_btn = ttk.Button(anim_box, text="Step", command=self.step_once)
-        self.step_btn.grid(row=0, column=3, sticky="w", padx=(8, 0))
+        self.step_btn.grid(row=0, column=4, sticky="w", padx=(8, 0))
 
         self.stop_btn = ttk.Button(anim_box, text="Stop", command=self.stop_animation)
-        self.stop_btn.grid(row=0, column=4, sticky="w", padx=(8, 0))
+        self.stop_btn.grid(row=0, column=5, sticky="w", padx=(8, 0))
+        """
 
         # Output: moves + metrics
         out_box = ttk.LabelFrame(right, text="Output", padding=10)
@@ -159,14 +168,14 @@ class CubeGUI(tk.Tk):
         #       U
         #   L   F   R   B
         #       D
-        size = 50
+        size = 40
         gap = 4
 
         # Coordinates (tuned for 440x420 canvas)
-        Ux, Uy = 180, 40
-        Lx, Ly = 60, 160
-        Fx, Fy = 180, 160
-        Rx, Ry = 300, 160
+        Ux, Uy = 200, 40
+        Lx, Ly = 90, 160
+        Fx, Fy = 200, 160
+        Rx, Ry = 310, 160
         Bx, By = 420, 160  
 
         # Shift all left so B fits canvas
@@ -182,12 +191,12 @@ class CubeGUI(tk.Tk):
         self._draw_face(D, Fx, Fy + 120, size=size, gap=gap)
 
         # Labels
-        self.canvas.create_text(Ux + 50, Uy - 14, text="U", font=("Segoe UI", 11, "bold"))
-        self.canvas.create_text(Lx + 50, Ly - 14, text="L", font=("Segoe UI", 11, "bold"))
-        self.canvas.create_text(Fx + 50, Fy - 14, text="F", font=("Segoe UI", 11, "bold"))
-        self.canvas.create_text(Rx + 50, Ry - 14, text="R", font=("Segoe UI", 11, "bold"))
-        self.canvas.create_text(Bx + 50, By - 14, text="B", font=("Segoe UI", 11, "bold"))
-        self.canvas.create_text(Fx + 50, Fy + 106, text="D", font=("Segoe UI", 11, "bold"))
+        self.canvas.create_text(Ux + 42, Uy - 14, text="U", font=("Segoe UI", 16, "bold"))
+        self.canvas.create_text(Lx + 42, Ly - 14, text="L", font=("Segoe UI", 16, "bold"))
+        self.canvas.create_text(Fx + 42, Fy - 14, text="F", font=("Segoe UI", 16, "bold"))
+        self.canvas.create_text(Rx + 42, Ry - 14, text="R", font=("Segoe UI", 16, "bold"))
+        self.canvas.create_text(Bx + 42, By - 14, text="B", font=("Segoe UI", 16, "bold"))
+        self.canvas.create_text(Fx + 42, Fy + 106, text="D", font=("Segoe UI", 16, "bold"))
 
     # ----------------------------
     # Actions
@@ -202,6 +211,23 @@ class CubeGUI(tk.Tk):
             self.moves_text.insert("end", " ".join(moves))
         else:
             self.moves_text.insert("end", "(no moves)")
+
+    def open_3d_solver(self):
+        if not self.scramble_moves:
+            messagebox.showinfo("No scramble", "Scramble the cube first.")
+            return
+        scramble_arg = ",".join(self.scramble_moves)
+        subprocess.Popen([sys.executable, "solver_animation.py", scramble_arg])
+
+    def solve_3d_solver(self):
+        if not self.scramble_moves:
+            messagebox.showinfo("No scramble", "Scramble the cube first.")
+            return
+
+        scramble_arg = ",".join(self.scramble_moves)      # Scramble moves
+        solve_arg = ",".join(self.solution_moves)         # Solution moves
+        subprocess.Popen([sys.executable, "solver_animation.py", scramble_arg, solve_arg])
+
 
     def reset_cube(self):
         self.stop_animation()

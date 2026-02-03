@@ -193,7 +193,7 @@ def show_solution_states(start_state, solution_moves):
 # Main
 if __name__ == "__main__":
     # Random scramble
-    scrambled_state, scramble_moves = random_scramble(n_moves = 5)
+    scrambled_state, scramble_moves = random_scramble(n_moves = 10)
     print("Scramble moves applied:", scramble_moves)
     print("-" * 30)
     print("Scrambled Cube:")
