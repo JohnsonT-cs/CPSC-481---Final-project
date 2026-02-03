@@ -13,11 +13,11 @@ app.use_app('pyqt6')
 
 # Solution animation (slow, visible)
 SOLVE_STEPS = 30
-SOLVE_DURATION = 0.2
+SOLVE_DURATION = 0.8
 
 # Scramble animation (fast)
 SCRAMBLE_STEPS = 6
-SCRAMBLE_DURATION = 0.08
+SCRAMBLE_DURATION = 0.1
 
 
 #cube_state = AC.Goal_State
